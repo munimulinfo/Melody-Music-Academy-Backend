@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require('cors')
-const { MongoClient, ServerApiVersion, ObjectId,} = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, } = require('mongodb');
 const app = express();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -42,51 +42,69 @@ async function run() {
     await client.connect();
 
     const usersCollection = client.db("music-instruments-learn-school").collection('users');
+
+    // jwt 
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+
+      res.send({ token })
+    })
+    // Warning: use verifyJWT before using verifyAdmin
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
     // allusers get api 
-     app.get('/users', async(req, res) => {
+    app.get('/users', async (req, res) => {
       const result = await usersCollection.find().toArray();
-     res.send(result);
-     })
+      res.send(result);
+    })
 
-  //alluser data post api 
-     app.post('/users', async(req, res) => {
-     const user = req.body;
-     const query = { email: user.email };
-     const existingUser = await usersCollection.findOne(query);
-     if (existingUser) {
-       return res.send({ error: "user Alredy exsits" })
-     }
-     const result = await usersCollection.insertOne(user);
-     res.send(result);
-  });
+    //alluser data post api 
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ error: "user Alredy exsits" })
+      }
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
 
 
-  // app.get('/users/admin/:email', verifyJWT, async (req, res) => {
-  //   const email = req.params.email;
+    // app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+    //   const email = req.params.email;
 
-  //   if (req.decoded.email !== email) {
-  //     res.send({ admin: false })
-  //   }
+    //   if (req.decoded.email !== email) {
+    //     res.send({ admin: false })
+    //   }
 
-  //   const query = { email: email }
-  //   const user = await usersCollection.findOne(query);
-  //   const result = { admin: user?.role === 'admin' }
-  //   res.send(result);
-  // })
+    //   const query = { email: email }
+    //   const user = await usersCollection.findOne(query);
+    //   const result = { admin: user?.role === 'admin' }
+    //   res.send(result);
+    // })
 
-// user role update this api
-  app.patch('/users/admin/:id', async (req, res) => {
-    const id = req.params.id;
-    console.log(id);
-    const filter = { _id: new ObjectId(id) };
-    const updateDoc = {
-      $set: {
-        role: 'admin'
-      },
-    };
-    const result = await usersCollection.updateOne(filter, updateDoc);
-    res.send(result);
-  });
+    // user role update this api
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'admin'
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -100,9 +118,9 @@ run().catch(console.dir);
 
 
 app.get("/", (req, res) => {
-    res.send("music instrument leran school server is running");
-  })
-  
-  app.listen(port, (req, res) => {
-    console.log(`music instrument leran school server is running on port ${port}`)
-  })
+  res.send("music instrument leran school server is running");
+})
+
+app.listen(port, (req, res) => {
+  console.log(`music instrument leran school server is running on port ${port}`)
+})
