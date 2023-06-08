@@ -61,7 +61,7 @@ async function run() {
       }
       next();
     }
-      // Warning: use verifyJWT before using verifyAdmin
+    // Warning: use verifyJWT before using verifyAdmin
     const verifyInstructor = async (req, res, next) => {
       const email = req.decoded.email;
       const query = { email: email }
@@ -90,12 +90,12 @@ async function run() {
       res.send(result);
     });
 
-   // verify jwt and server find admin
+    // verify jwt and server find admin
     app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (req.decoded.email !== email) {
         res.send({ admin: false })
-      }  
+      }
       const query = { email: email }
       const user = await usersCollection.findOne(query);
       const result = { admin: user?.role === 'admin' }
@@ -105,7 +105,7 @@ async function run() {
       const email = req.params.email;
       if (req.decoded.email !== email) {
         res.send({ instructor: false })
-      }  
+      }
       const query = { email: email }
       const user = await usersCollection.findOne(query);
       const result = { instructor: user?.role === 'instructor' }
@@ -126,7 +126,7 @@ async function run() {
       res.send(result);
     });
     // user role instruct this api fetch
-    app.patch('/users/instructor/:id',  async (req, res) => {
+    app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -138,14 +138,30 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+    // Specific email query to data fetch to server this api
+    // app.get('/allclass', async (req, res) => {
+    //   let query = {};
+    //   if (req.query?.email) {
+    //     query = { email: req.query.email }
+    //   }
+    //   const cursor = allclassCollection.find(query)
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
-  // all class data this api post to server
-      app.post('/allclass', async (req, res) => {
-        const addclass = req.body;
-        toys.createdAt = new Date();
-        const result = await allclassCollection.insertOne(addclass);
-        res.send(result);
-      });
+    // Specific email query to data fetch to server this api
+    app.get("/myclass/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+       const myclass = await allclassCollection.find({ instructoremail: req.params.email,}).toArray();
+       res.send(myclass);
+    });
+    // all class data this api post to server
+    app.post('/allclass', async (req, res) => {
+      const addclass = req.body;
+      const result = await allclassCollection.insertOne(addclass);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
