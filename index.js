@@ -138,19 +138,31 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-// this api job all data find to server allclassCollection
+    // this api job all data find to server allclassCollection
     app.get('/allclasses', async (req, res) => {
       const result = await allclassCollection.find().toArray();
       res.send(result);
     })
- 
+
     // Specific email query to data fetch to server this api
     app.get("/myclass/:email", async (req, res) => {
       const email = req.params.email;
       console.log(email);
-       const myclass = await allclassCollection.find({ instructoremail: req.params.email,}).toArray();
-       res.send(myclass);
+      const myclass = await allclassCollection.find({ instructoremail: req.params.email, }).toArray();
+      res.send(myclass);
     });
+    // data base on data find status
+
+    app.get("/allclass/:status", async (req, res) => {
+      console.log(req.params.id);
+      const jobs = await jobsCollection
+        .find({
+          status: 'aproved',
+        })
+        .toArray();
+      res.send(jobs);
+    });
+
     // all class data this api post to server
     app.post('/allclass', verifyJWT, verifyInstructor, async (req, res) => {
       const addclass = req.body;
