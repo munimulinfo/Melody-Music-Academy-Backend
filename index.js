@@ -42,6 +42,7 @@ async function run() {
     await client.connect();
 
     const usersCollection = client.db("music-instruments-learn-school").collection('users');
+    const allclassCollection = client.db("music-instruments-learn-school").collection('allclass');
 
     // jwt 
     app.post('/jwt', (req, res) => {
@@ -70,8 +71,9 @@ async function run() {
       }
       next();
     }
+
     // allusers get api 
-    app.get('/users', verifyJWT, verifyAdmin, verifyInstructor, async (req, res) => {
+    app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
@@ -102,11 +104,11 @@ async function run() {
     app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (req.decoded.email !== email) {
-        res.send({ admin: false })
+        res.send({ instructor: false })
       }  
       const query = { email: email }
       const user = await usersCollection.findOne(query);
-      const result = { admin: user?.role === 'instructor' }
+      const result = { instructor: user?.role === 'instructor' }
       res.send(result);
     })
 
@@ -136,6 +138,14 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+  // all class data this api post to server
+      app.post('/allclass', async (req, res) => {
+        const addclass = req.body;
+        toys.createdAt = new Date();
+        const result = await allclassCollection.insertOne(addclass);
+        res.send(result);
+      });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
