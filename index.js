@@ -138,17 +138,12 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-    // Specific email query to data fetch to server this api
-    // app.get('/allclass', async (req, res) => {
-    //   let query = {};
-    //   if (req.query?.email) {
-    //     query = { email: req.query.email }
-    //   }
-    //   const cursor = allclassCollection.find(query)
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
-
+// this api job all data find to server allclassCollection
+    app.get('/allclasses', async (req, res) => {
+      const result = await allclassCollection.find().toArray();
+      res.send(result);
+    })
+ 
     // Specific email query to data fetch to server this api
     app.get("/myclass/:email", async (req, res) => {
       const email = req.params.email;
@@ -157,7 +152,7 @@ async function run() {
        res.send(myclass);
     });
     // all class data this api post to server
-    app.post('/allclass', async (req, res) => {
+    app.post('/allclass', verifyJWT, verifyInstructor, async (req, res) => {
       const addclass = req.body;
       const result = await allclassCollection.insertOne(addclass);
       res.send(result);
