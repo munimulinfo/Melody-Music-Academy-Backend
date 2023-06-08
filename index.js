@@ -43,6 +43,7 @@ async function run() {
 
     const usersCollection = client.db("music-instruments-learn-school").collection('users');
     const allclassCollection = client.db("music-instruments-learn-school").collection('allclass');
+    const selectClassCollection = client.db("music-instruments-learn-school").collection('selectclass');
 
     // jwt 
     app.post('/jwt', (req, res) => {
@@ -154,15 +155,9 @@ async function run() {
     // data base on data find status
 
     app.get("/allclass/:status", async (req, res) => {
-      console.log(req.params.id);
-      const jobs = await jobsCollection
-        .find({
-          status: 'aproved',
-        })
-        .toArray();
-      res.send(jobs);
+      const result = await allclassCollection.find({ status: req.params.status,}).toArray();
+      res.send(result);
     });
-
     // all class data this api post to server
     app.post('/allclass', verifyJWT, verifyInstructor, async (req, res) => {
       const addclass = req.body;
@@ -181,6 +176,13 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+// student selected classes this api fetch and provide data
+    app.post('/selectclass', async (req, res) => {
+      const selectclass = req.body;
+      const result = await selectClassCollection.insertOne(selectclass);
+      res.send(result);
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
