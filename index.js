@@ -60,8 +60,18 @@ async function run() {
       }
       next();
     }
+      // Warning: use verifyJWT before using verifyAdmin
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'instructor') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
     // allusers get api 
-    app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+    app.get('/users', verifyJWT, verifyAdmin, verifyInstructor, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
@@ -114,7 +124,7 @@ async function run() {
       res.send(result);
     });
     // user role instruct this api fetch
-    app.patch('/users/instructor/:id', async (req, res) => {
+    app.patch('/users/instructor/:id',  async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
