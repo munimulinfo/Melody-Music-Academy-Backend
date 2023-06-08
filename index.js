@@ -157,7 +157,18 @@ async function run() {
       const result = await allclassCollection.insertOne(addclass);
       res.send(result);
     });
-
+    // user post aprove or pending status on update
+    app.patch('/allclass/aproved/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'aproved'
+        },
+      };
+      const result = await allclassCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
