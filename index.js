@@ -155,7 +155,7 @@ async function run() {
     // data base on data find status
 
     app.get("/allclass/:status", async (req, res) => {
-      const result = await allclassCollection.find({ status: req.params.status,}).toArray();
+      const result = await allclassCollection.find({ status: req.params.status, }).toArray();
       res.send(result);
     });
     // all class data this api post to server
@@ -176,7 +176,23 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-// student selected classes this api fetch and provide data
+    // student selected class this api provide this email add data
+    app.get('/selectclass', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ error: true, message: 'forbidden access' })
+      }
+      const query = { email: email };
+      const result = await selectClassCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
+    // student selected classes this api post  data
     app.post('/selectclass', async (req, res) => {
       const selectclass = req.body;
       const result = await selectClassCollection.insertOne(selectclass);
