@@ -49,9 +49,9 @@ async function run() {
     app.post('/jwt', (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-
       res.send({ token })
     })
+
     // Warning: use verifyJWT before using verifyAdmin
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;
@@ -62,6 +62,7 @@ async function run() {
       }
       next();
     }
+
     // Warning: use verifyJWT before using verifyAdmin
     const verifyInstructor = async (req, res, next) => {
       const email = req.decoded.email;
@@ -78,7 +79,11 @@ async function run() {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
-
+    
+   app.get('/instructors', async(req, res) => {
+     const result = await usersCollection.find().toArray();
+     res.send(result);
+   }) 
     //alluser data post api 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -139,6 +144,14 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+   // delete user api for admin
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await allclassCollection.deleteOne(query);
+      res.send(result);
+    })
+
     // this api job all data find to server allclassCollection
     app.get('/allclasses', async (req, res) => {
       const result = await allclassCollection.find().toArray();
@@ -155,11 +168,6 @@ async function run() {
     // data base on data find status
     app.get("/allclass/:status", async (req, res) => {
       const result = await allclassCollection.find({ status: req.params.status, }).toArray();
-      res.send(result);
-    });
-    //data base on data find role
-    app.get("/allclass/:role", async (req, res) => {
-      const result = await allclassCollection.find({ role: req.params.role, }).toArray();
       res.send(result);
     });
 
