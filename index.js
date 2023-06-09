@@ -176,6 +176,15 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+    // admin delete classe api
+    app.delete('/allclass/:id', async(req, res) => {
+       const id = req.params.id;
+       const query = {_id: new ObjectId(id)}
+       const result = await allclassCollection.deleteOne(query);
+       res.send(result);
+    })
+
     // student selected class this api provide this email add data
     app.get('/selectclass', verifyJWT, async (req, res) => {
       const email = req.query.email;
@@ -199,12 +208,11 @@ async function run() {
     })
 
     // student selected classes delet api 
-    app.delete('/selectclass', async (req, res) => {
+    app.delete('/selectclass/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await selectClassCollection.deleteOne(query);
       res.send(result);
-
     })
 
     // Send a ping to confirm a successful connection
