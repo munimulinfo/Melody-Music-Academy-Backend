@@ -159,7 +159,7 @@ async function run() {
       res.send(result);
     });
     // all class data this api post to server
-    app.post('/allclass', verifyJWT, verifyInstructor, async (req, res) => {
+    app.post('/allclass', verifyJWT, async (req, res) => {
       const addclass = req.body;
       const result = await allclassCollection.insertOne(addclass);
       res.send(result);
@@ -176,13 +176,29 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+// instructor fetch thi api and update class
+    app.put("/allclass/:id", async (req, res) => {
+      const id = req.params.id;
+      const body = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          classname: body.title,
+          image: body.salary,
+          seats: body.category,
+          price: body.category,
+        },
+      };
+      const result = await allclassCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // admin delete classe api
-    app.delete('/allclass/:id', async(req, res) => {
-       const id = req.params.id;
-       const query = {_id: new ObjectId(id)}
-       const result = await allclassCollection.deleteOne(query);
-       res.send(result);
+    app.delete('/allclass/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await allclassCollection.deleteOne(query);
+      res.send(result);
     })
 
     // student selected class this api provide this email add data
