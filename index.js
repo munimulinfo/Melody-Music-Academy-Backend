@@ -158,6 +158,13 @@ async function run() {
       const result = await allclassCollection.find({ status: req.params.status, }).toArray();
       res.send(result);
     });
+
+    // specific id find data to data base
+    app.get('/allclass/:id', async(req, res) => {
+       const id = req.params.id;
+       const myclass = await allclassCollection.findOne({_id: new ObjectId(id)});
+       res.send(myclass);
+    })
     // all class data this api post to server
     app.post('/allclass', verifyJWT, async (req, res) => {
       const addclass = req.body;
