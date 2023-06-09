@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId, } = require('mongodb');
 const app = express();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.Payment_Secret_Key)
 app.use(cors());
 const port = process.env.PORT | 5000;
 app.use(express.json())
@@ -79,11 +80,11 @@ async function run() {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
-    
-   app.get('/instructors', async(req, res) => {
-     const result = await usersCollection.find().toArray();
-     res.send(result);
-   }) 
+
+    app.get('/instructors', async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    })
     //alluser data post api 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -144,7 +145,7 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-   // delete user api for admin
+    // delete user api for admin
     app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
@@ -172,11 +173,11 @@ async function run() {
     });
 
     // specific id find data to data base
-    app.get('/singleclass/:id', async(req, res) => {
-       const id = req.params.id;
-       const query = ({_id: new ObjectId(id)})
-       const result = await allclassCollection.findOne(query);       
-       res.send(result);
+    app.get('/singleclass/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = ({ _id: new ObjectId(id) })
+      const result = await allclassCollection.findOne(query);
+      res.send(result);
     })
     // all class data this api post to server
     app.post('/allclass', verifyJWT, async (req, res) => {
@@ -196,7 +197,7 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-// instructor fetch thi api and update class
+    // instructor fetch thi api and update class
     app.put("/allclass/:id", async (req, res) => {
       const id = req.params.id;
       const body = req.body;
@@ -250,6 +251,23 @@ async function run() {
       const result = await selectClassCollection.deleteOne(query);
       res.send(result);
     })
+
+    //Create payment intent
+   app.post('create-payment-intent', async (req, res) => {
+      
+    const {price} = req.body;
+    const amount = parseInt(price*100);
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: 'usd',
+      payment_method_types: ['card']
+    });
+    res.send({
+      clientSecret: paymentIntent.client_secret
+    })
+     
+   })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
