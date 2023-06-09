@@ -153,17 +153,22 @@ async function run() {
       res.send(myclass);
     });
     // data base on data find status
-
     app.get("/allclass/:status", async (req, res) => {
       const result = await allclassCollection.find({ status: req.params.status, }).toArray();
       res.send(result);
     });
+    //data base on data find role
+    app.get("/allclass/:role", async (req, res) => {
+      const result = await allclassCollection.find({ role: req.params.role, }).toArray();
+      res.send(result);
+    });
 
     // specific id find data to data base
-    app.get('/allclass/:id', async(req, res) => {
+    app.get('/singleclass/:id', async(req, res) => {
        const id = req.params.id;
-       const myclass = await allclassCollection.findOne({_id: new ObjectId(id)});
-       res.send(myclass);
+       const query = ({_id: new ObjectId(id)})
+       const result = await allclassCollection.findOne(query);       
+       res.send(result);
     })
     // all class data this api post to server
     app.post('/allclass', verifyJWT, async (req, res) => {
@@ -190,10 +195,10 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          classname: body.title,
-          image: body.salary,
-          seats: body.category,
-          price: body.category,
+          classname: body.classname,
+          image: body.image,
+          seats: body.seats,
+          price: body.price,
         },
       };
       const result = await allclassCollection.updateOne(filter, updateDoc);
