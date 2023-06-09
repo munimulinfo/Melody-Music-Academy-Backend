@@ -191,12 +191,20 @@ async function run() {
       res.send(result);
     });
 
-
     // student selected classes this api post  data
     app.post('/selectclass', async (req, res) => {
       const selectclass = req.body;
       const result = await selectClassCollection.insertOne(selectclass);
       res.send(result);
+    })
+
+    // student selected classes delet api 
+    app.delete('/selectclass', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await selectClassCollection.deleteOne(query);
+      res.send(result);
+
     })
 
     // Send a ping to confirm a successful connection
