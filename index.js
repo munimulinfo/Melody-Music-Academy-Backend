@@ -269,12 +269,21 @@ async function run() {
 
     })
 
-    // payment api
+   //server get the call user email base data provide to user enroll classes
+   app.get("/enroledclases/:email", async (req, res) => {
+    const email = req.params.email;
+    console.log(email);
+    const enrolclass = await paymentCollection.find({ instructoremail: req.params.email, }).toArray();
+    res.send(enrolclass);
+  });
+
+    // payment api and delete select class and fainaly update seates dclass
     app.post('/payments', verifyJWT, async (req, res) => {
       const payment = req.body;
       const id = payment.payid;
       const classid = payment.classid;
       const seats = payment.seats - 1;
+      const enrool = payment.enroll + 1;
       const insertResult = await paymentCollection.insertOne(payment);
       const query = { _id:  new ObjectId(id)} 
       const deleteResult = await selectClassCollection.deleteOne(query);
@@ -282,13 +291,12 @@ async function run() {
       const updateDoc = {
         $set: {
           seats: seats,
+          enroll: enrool,
         },
       };
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send({ insertResult, deleteResult, result});
     })
-
-
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
