@@ -272,10 +272,20 @@ async function run() {
     // payment api
     app.post('/payments', verifyJWT, async (req, res) => {
       const payment = req.body;
+      const id = payment.payid;
+      const classid = payment.classid;
+      const seats = payment.seats - 1;
       const insertResult = await paymentCollection.insertOne(payment);
-      const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
-      const deleteResult = await cartCollection.deleteMany(query)
-      res.send({ insertResult, deleteResult });
+      const query = { _id:  new ObjectId(id)} 
+      const deleteResult = await selectClassCollection.deleteOne(query);
+      const filter = {_id: new ObjectId(classid)}
+      const updateDoc = {
+        $set: {
+          seats: seats,
+        },
+      };
+      const result = await allclassCollection.updateOne(filter, updateDoc);
+      res.send({ insertResult, deleteResult, result});
     })
 
 
