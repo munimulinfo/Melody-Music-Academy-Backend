@@ -40,8 +40,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-
+    // await client.connect();
     const usersCollection = client.db("music-instruments-learn-school").collection('users');
     const allclassCollection = client.db("music-instruments-learn-school").collection('allclass');
     const selectClassCollection = client.db("music-instruments-learn-school").collection('selectclass');
@@ -65,18 +64,29 @@ async function run() {
       next();
     }
 
+    // Warning: use verifyJWT before using verifyAdmin
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'instructor') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
+
     // allusers get api 
     app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
-
-    app.get('/instructors',verifyJWT, async (req, res) => {
+    //
+    app.get('/instructors', async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
     //alluser data post api 
-    app.post('/users',  async (req, res) => {
+    app.post('/users', async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
       const existingUser = await usersCollection.findOne(query);
@@ -86,7 +96,6 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
-
     // verify jwt and server find admin
     app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
@@ -110,7 +119,7 @@ async function run() {
     })
 
     // user role update this api
-    app.patch('/users/admin/:id', verifyJWT, async (req, res) => {
+    app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -123,7 +132,7 @@ async function run() {
       res.send(result);
     });
     // user role instruct this api fetch
-    app.patch('/users/instructor/:id', verifyJWT, async (req, res) => {
+    app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -136,7 +145,7 @@ async function run() {
       res.send(result);
     });
     // delete user api for admin
-    app.delete('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
+    app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await usersCollection.deleteOne(query);
@@ -144,39 +153,42 @@ async function run() {
     })
 
     // this api job all data find to server allclassCollection
-    app.get('/allclasses', verifyJWT, async (req, res) => {
+    app.get('/allclasses', async (req, res) => {
       const result = await allclassCollection.find().toArray();
       res.send(result);
     })
 
     // Specific email query to data fetch to server this api
-    app.get("/myclass/:email", verifyJWT, async (req, res) => {
+    app.get("/myclass/:email", async (req, res) => {
       const email = req.params.email;
       console.log(email);
       const myclass = await allclassCollection.find({ instructoremail: req.params.email, }).toArray();
       res.send(myclass);
     });
+
     // data base on data find status
-    app.get("/allclass/:status", verifyJWT, async (req, res) => {
+    app.get("/allclass/:status", async (req, res) => {
       const result = await allclassCollection.find({ status: req.params.status, }).toArray();
       res.send(result);
     });
 
     // specific id find data to data base
-    app.get('/singleclass/:id', verifyJWT, async (req, res) => {
+    app.get('/singleclass/:id', async (req, res) => {
       const id = req.params.id;
       const query = ({ _id: new ObjectId(id) })
       const result = await allclassCollection.findOne(query);
       res.send(result);
     })
+
     // all class data this api post to server
     app.post('/allclass', verifyJWT, async (req, res) => {
       const addclass = req.body;
       const result = await allclassCollection.insertOne(addclass);
       res.send(result);
     });
+
     // user post aprove or pending status on update
-    app.patch('/allclass/aproved/:id', verifyJWT, async (req, res) => {
+    app.patch('/allclass/aproved/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -187,8 +199,25 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+    // //denide starus 
+    // app.patch('/allclass/aproved/:id', async (req, res) => {
+    //   const id = req.params.id;
+    //   const status = req.body.status;
+    //   const feadback = req.body.feadback;
+    //   const filter = { _id: new ObjectId(id) };
+    //   const updateDoc = {
+    //     $set: {
+    //       status: status,
+    //       feadback: feadback,
+    //     },
+    //   };
+    //   const result = await allclassCollection.updateOne(filter, updateDoc);
+    //   res.send(result);
+    // });
+
     // instructor fetch thi api and update class
-    app.put("/allclass/:id", verifyJWT, async (req, res) => {
+    app.put("/allclass/:id", async (req, res) => {
       const id = req.params.id;
       const body = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -203,9 +232,8 @@ async function run() {
       const result = await allclassCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
-
     // admin delete classe api
-    app.delete('/allclass/:id', verifyJWT, verifyAdmin, async (req, res) => {
+    app.delete('/allclass/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await allclassCollection.deleteOne(query);
@@ -228,14 +256,14 @@ async function run() {
     });
 
     // student selected classes this api post  data
-    app.post('/selectclass', verifyJWT, async (req, res) => {
+    app.post('/selectclass', async (req, res) => {
       const selectclass = req.body;
       const result = await selectClassCollection.insertOne(selectclass);
       res.send(result);
     })
 
     // student selected classes delet api 
-    app.delete('/selectclass/:id', verifyJWT, async (req, res) => {
+    app.delete('/selectclass/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await selectClassCollection.deleteOne(query);
@@ -255,19 +283,20 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+
     })
 
     //all data this api provide to sorting popular classes
-    app.get('/popularclasses', verifyJWT, async (req, res) => {
+    app.get('/popularclasses', async (req, res) => {
       const popularclass = await allclassCollection.find().sort({ enroll: -1 }).limit(6).toArray();
       res.send(popularclass);
     })
     // alll payment classe api
-    app.get('/allpayments', verifyJWT, async (req, res) => {
-        const result = await paymentCollection.find().toArray();
-        res.send(result);
+    app.get('/allpayments', async (req, res) => {
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
     })
-    
+
     //server get the call insturctor email base data provide to user enroll classes
     app.get("/enroledclases/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
@@ -280,7 +309,6 @@ async function run() {
       const enrolclass = await paymentCollection.find({ email: req.params.email, }).toArray();
       res.send(enrolclass);
     });
-
     // payment api and delete select class and fainaly update seates dclass
     app.post('/payments', verifyJWT, async (req, res) => {
       const payment = req.body;
@@ -306,13 +334,12 @@ async function run() {
     });
 
     // singleid base data delet men api
-    app.delete('/paymentdelet/:id',verifyAdmin, async (req, res) => {
+    app.delete('/paymentdelet/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await paymentCollection.deleteOne(query);
       res.send(result);
     })
-
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
