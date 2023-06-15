@@ -59,7 +59,7 @@ async function run() {
       const query = { email: email }
       const user = await usersCollection.findOne(query);
       if (user?.role !== 'admin') {
-        return res.status(403).send({ error: true, message: 'forbidden message' });
+        return res.status(403).send({ error: true, message: 'forbidden message'});
       }
       next();
     }
@@ -166,7 +166,7 @@ async function run() {
       res.send(myclass);
     });
 
-    // data base on data find status
+   // data base on data find status
     app.get("/allclass/:status", async (req, res) => {
       const result = await allclassCollection.find({ status: req.params.status, }).toArray();
       res.send(result);
@@ -200,21 +200,21 @@ async function run() {
       res.send(result);
     });
 
-    // //denide starus 
-    // app.patch('/allclass/aproved/:id', async (req, res) => {
-    //   const id = req.params.id;
-    //   const status = req.body.status;
-    //   const feadback = req.body.feadback;
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updateDoc = {
-    //     $set: {
-    //       status: status,
-    //       feadback: feadback,
-    //     },
-    //   };
-    //   const result = await allclassCollection.updateOne(filter, updateDoc);
-    //   res.send(result);
-    // });
+    //denide starus 
+    app.patch('/allclass/denide/:id', async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      const feadback = req.body.feadback;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: status,
+          feadback: feadback,
+        },
+      };
+      const result = await allclassCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // instructor fetch thi api and update class
     app.put("/allclass/:id", async (req, res) => {
